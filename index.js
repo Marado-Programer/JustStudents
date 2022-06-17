@@ -23,8 +23,16 @@ if (url.match(/units/)) {
 } else if (url.match(/users/)) {
   const evaluationsTable = document.getElementsByClassName("evaluations")[1],
         evaluations = document.querySelectorAll("table.evaluations tr.evaluation");
+  
+  const date = /(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2} UTC)/;
+  
   const orderedEvaluations = [].slice.call(evaluations).sort((x, y) => {
-    return x.childNodes[5].innerHTML - y.childNodes[5].innerHTML;
+    
+    const xDate = new Date(date.exec(x.childNodes[15].title)[1]);
+    const yDate = new Date(date.exec(y.childNodes[15].title)[1]);
+    
+    return xDate - yDate;
+    //return x.childNodes[5].innerHTML - y.childNodes[5].innerHTML;
   });
   
   evaluations.forEach(i => i.remove());
