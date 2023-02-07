@@ -20,22 +20,32 @@ if (url.match(/units/)) {
     if (i != 0 && !student.classList.contains("active"))
       student.remove();
   });
+  const evaluationsTable = document.getElementsByClassName("evaluations")[1],
+    evaluations = document.querySelectorAll("table.evaluations tr.active");
+  const orderedEvaluations = [].slice.call(evaluations).sort((x, y) => {
+    return x.querySelector(".number").childNodes[0].nodeValue - y.querySelector(".number").childNodes[0].nodeValue;
+  });
+
+  evaluations.forEach(i => i.remove());
+
+  orderedEvaluations.forEach(i => evaluationsTable.append(i));
 } else if (url.match(/users/)) {
   const evaluationsTable = document.getElementsByClassName("evaluations")[1],
         evaluations = document.querySelectorAll("table.evaluations tr.evaluation");
-  
+
   const date = /(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2} UTC)/;
-  
+
   const orderedEvaluations = [].slice.call(evaluations).sort((x, y) => {
-    
+
     const xDate = new Date(date.exec(x.childNodes[15].title)[1]);
     const yDate = new Date(date.exec(y.childNodes[15].title)[1]);
-    
-    return xDate - yDate;
-    //return x.childNodes[5].innerHTML - y.childNodes[5].innerHTML;
+
+    //return xDate - yDate;
+    return x.childNodes[5].innerHTML - y.childNodes[5].innerHTML;
   });
-  
+
   evaluations.forEach(i => i.remove());
-  
-  orderedEvaluations.reverse().forEach(i => evaluationsTable.append(i));
+
+  //orderedEvaluations.reverse().forEach(i => evaluationsTable.append(i));
+  orderedEvaluations.forEach(i => evaluationsTable.append(i));
 }
