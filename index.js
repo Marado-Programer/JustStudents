@@ -23,7 +23,11 @@ if (url.match(/units/)) {
   const evaluationsTable = document.getElementsByClassName("evaluations")[1],
     evaluations = document.querySelectorAll("table.evaluations tr.active");
   const orderedEvaluations = [].slice.call(evaluations).sort((x, y) => {
-    return x.querySelector(".number").childNodes[0].nodeValue - y.querySelector(".number").childNodes[0].nodeValue;
+    if (x.querySelector(".number")) {
+      return x.querySelector(".number").childNodes[0].nodeValue - y.querySelector(".number").childNodes[0].nodeValue;
+    } else {
+      return x.querySelector("td:nth-child(4)").innerText - y.querySelector("td:nth-child(4)").innerText;
+    }
   });
 
   evaluations.forEach(i => i.remove());
