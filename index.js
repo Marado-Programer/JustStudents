@@ -3,7 +3,7 @@
 // @namespace   https://github.com/Marado-Programer/
 // @match       http*://oghma.epcc.pt/*
 // @grant       none
-// @version     1.1
+// @version     1.2
 // @author      al220007@epcc.pt
 // @description Remove students that aren't students anymore
 // ==/UserScript==
