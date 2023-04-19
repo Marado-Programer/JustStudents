@@ -183,4 +183,9 @@ if (url.match(/units/)) {
 
     lisorted.forEach((i) => list.append(i));
   })();
+} else if (url.match("/calendars") {
+ document.querySelectorAll("#calendar > div.fc-view-container > div > table > tbody > tr > td > div > div > div.fc-content-skeleton > table > tbody > tr > td > div > a.fc-time-grid-event.fc-v-event.fc-event.fc-start.fc-end").forEach(i => {
+    i.style.backgroundColor = "rgb(230, 176, 170)"
+    i.style.borderColor = "rgb(174, 214, 241)"
+  }); 
 }
