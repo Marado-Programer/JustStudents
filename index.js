@@ -10,6 +10,8 @@
 
 const url = window.location.href;
 
+document.body.innerHTML = document.body.innerHTML.replaceAll(/João Rodrigues/g, "Draikontuga");
+
 document.querySelectorAll("li.student, tr.student").forEach((student) => {
   if (!student.classList.contains("active")) student.remove();
 });
@@ -145,12 +147,27 @@ if (url.match(/units/)) {
       unsorted.push([url, (avg / evaluations.length).toFixed(3)]);
     }
 
+    const allavg = unsorted.reduce(([, x], [, y]) => [undefined, parseFloat(Number.isNaN(+x) ? 0 : x, 10) + parseFloat(Number.isNaN(+y) ? 0 : y, 10)])[1] / unsorted.filter(([, x]) => !Number.isNaN(+x)).length;
+    const avgli = document.createElement("li");
+    avgli.classList.add("student");
+    avgli.classList.add("active");
+    //avgli.style.backgroundColor = "#FF1818";
+    avgli.innerHTML = '<a href="#AVG"><img src="" style="height: 79px; width: auto"></a><span class=""></span><br><a href="#AVG">AVERAGE USER</a>';
+    unsorted.push(["#AVG", allavg.toFixed(3)]);
+
     const lisorted = unsorted.sort(([, x], [, y]) => x - y).map(
       ([href, avg]) => {
-        const url = (new URL(href).pathname).replace(/\/?evaluations\/?/, "");
-        const student = document.querySelector(
-          `#main > div > div.span10.main > ul > li:has(a[href="${url}"])`,
-        );
+        let student = null;
+
+        if (href === "#AVG") {
+          student = avgli;
+        } else {
+          const url = (new URL(href).pathname).replace(/\/?evaluations\/?/, "");
+          student = document.querySelector(
+            `#main > div > div.span10.main > ul > li:has(a[href="${url}"])`,
+          );
+        }
+
         const n = student.querySelector("span");
         if (n != null) {
           n.innerText += ` (${avg})`;
@@ -160,7 +177,7 @@ if (url.match(/units/)) {
     );
 
     const list = document.querySelector("#main > div > div.span10.main > ul");
-    console.log(list);
+
     [].slice.apply(list.querySelectorAll("li")).forEach((i) => i.remove());
 
     lisorted.forEach((i) => list.append(i));
