@@ -11,6 +11,7 @@
 const url = window.location.href;
 
 document.body.innerHTML = document.body.innerHTML.replaceAll(/João Rodrigues/g, "Draikontuga");
+document.body.innerHTML = document.body.innerHTML.replaceAll(/João Afonso Andrade Rodrigues/g, "Draikontuga");
 
 document.querySelectorAll("li.student, tr.student").forEach((student) => {
   if (!student.classList.contains("active")) student.remove();
