@@ -3,7 +3,7 @@
 // @namespace   https://github.com/Marado-Programer/
 // @match       http*://oghma.epcc.pt/*
 // @grant       none
-// @version     1.3
+// @version     1.2
 // @author      al220007@epcc.pt
 // @description Remove students that aren't students anymore
 // ==/UserScript==
@@ -118,6 +118,9 @@ if (url.match(/units/)) {
 
     const unsorted = [];
 
+
+      const ds = new Set();
+
     for (const [url, p] of pages) {
       const page = await p;
       const dummy = document.createElement("div");
@@ -127,12 +130,16 @@ if (url.match(/units/)) {
         page.indexOf("</table>", start),
       ).trim();
 
-      const evaluationsTable = dummy.getElementsByClassName("evaluations")[0],
-        evaluations = dummy.querySelectorAll(
+      const evaluationsTable = dummy.getElementsByClassName("evaluations")[0];
+      let evaluations = dummy.querySelectorAll(
           "table.evaluations tr.evaluation",
         );
 
-      const avg = [].slice.apply(evaluations).reduce((x, y) =>
+      evaluations.forEach(i => ds.add(i.innerText.trim().split("\n", 1)[0].replaceAll(" ", "-")));
+
+      evaluations = [].slice.apply(evaluations)//.filter(i => i.innerText.trim().split("\n", 1)[0].replaceAll(" ", "-") == "Programação Avançada".replaceAll(" ", "-"));
+
+      const avg = evaluations.reduce((x, y) =>
         parseInt(
           typeof x === "number"
             ? x
@@ -148,7 +155,48 @@ if (url.match(/units/)) {
       unsorted.push([url, (avg / evaluations.length).toFixed(3)]);
     }
 
-    const allavg = unsorted.reduce(([, x], [, y]) => [undefined, parseFloat(Number.isNaN(+x) ? 0 : x, 10) + parseFloat(Number.isNaN(+y) ? 0 : y, 10)])[1] / unsorted.filter(([, x]) => !Number.isNaN(+x)).length;
+    const forfrom = document.querySelector("#main > div > div.span2.sidebar");
+    const form = document.createElement("form");
+    form.innerHTML = [...ds.values()].map(i => `<p><label>${i}: <input type="checkbox" checked name="classes" value=${i} /></label></p>`).join("");
+    form.onsubmit = e => {
+      e.preventDefault();
+    }
+    form.onchange = async e => {
+      for (const [url, p] of pages) {
+        const page = await p;
+        const dummy = document.createElement("div");
+        const start = page.indexOf("<table");
+        dummy.innerHTML = page.substring(
+          start,
+          page.indexOf("</table>", start),
+        ).trim();
+
+        const evaluationsTable = dummy.getElementsByClassName("evaluations")[0];
+        let evaluations = dummy.querySelectorAll(
+            "table.evaluations tr.evaluation",
+          );
+
+        evaluations.forEach(i => ds.add(i.innerText.trim().split("\n", 1)[0]));
+
+        evaluations = [].slice.apply(evaluations).filter(i => [].slice.apply(form["classes"]).filter(i => i.checked).map(i => i.value).includes(i.innerText.trim().split("\n", 1)[0].replaceAll(" ", "-")));
+
+        const avg = evaluations.reduce((x, y) =>
+          parseInt(
+            typeof x === "number"
+              ? x
+              : x.querySelector("td:nth-child(3)").innerText,
+            10,
+          ) + parseInt(
+            typeof y === "number"
+              ? y
+              : y.querySelector("td:nth-child(3)").innerText,
+            10,
+          ), 0);
+
+        unsorted.push([url, (avg / evaluations.length).toFixed(3)]);
+      }
+
+const allavg = unsorted.reduce(([, x], [, y]) => [undefined, parseFloat(Number.isNaN(+x) ? 0 : x, 10) + parseFloat(Number.isNaN(+y) ? 0 : y, 10)])[1] / unsorted.filter(([, x]) => !Number.isNaN(+x)).length;
     const avgli = document.createElement("li");
     avgli.classList.add("student");
     avgli.classList.add("active");
@@ -156,6 +204,7 @@ if (url.match(/units/)) {
     avgli.innerHTML = '<a href="#AVG"><img src="" style="height: 79px; width: auto"></a><span class=""></span><br><a href="#AVG">AVERAGE USER</a>';
     unsorted.push(["#AVG", allavg.toFixed(3)]);
 
+await new Promise(r => setTimeout(r, 1000));
     const lisorted = unsorted.sort(([, x], [, y]) => x - y).map(
       ([href, avg]) => {
         let student = null;
@@ -171,7 +220,47 @@ if (url.match(/units/)) {
 
         const n = student.querySelector("span");
         if (n != null) {
-          n.innerText += ` (${avg})`;
+          n.querySelector("class-rm")?.remove();
+          n.innerHTML += `<span class="class-rm"> (${avg})</span>`;
+        }
+        return student;
+      },
+    );
+
+    const list = document.querySelector("#main > div > div.span10.main > ul");
+
+    [].slice.apply(list.querySelectorAll("li")).forEach((i) => i.remove());
+
+    lisorted.forEach((i) => list.append(i));
+    };
+    forfrom.append(form);
+
+    const allavg = unsorted.reduce(([, x], [, y]) => [undefined, parseFloat(Number.isNaN(+x) ? 0 : x, 10) + parseFloat(Number.isNaN(+y) ? 0 : y, 10)])[1] / unsorted.filter(([, x]) => !Number.isNaN(+x)).length;
+    const avgli = document.createElement("li");
+    avgli.classList.add("student");
+    avgli.classList.add("active");
+    //avgli.style.backgroundColor = "#FF1818";
+    avgli.innerHTML = '<a href="#AVG"><img src="" style="height: 79px; width: auto"></a><span class=""></span><br><a href="#AVG">AVERAGE USER</a>';
+    unsorted.push(["#AVG", allavg.toFixed(3)]);
+
+    [].slice.apply(document.getElementsByClassName("class-rm")).forEach(i => i.remove());
+    const lisorted = unsorted.sort(([, x], [, y]) => x - y).map(
+      ([href, avg]) => {
+        let student = null;
+
+        if (href === "#AVG") {
+          student = avgli;
+        } else {
+          const url = (new URL(href).pathname).replace(/\/?evaluations\/?/, "");
+          student = document.querySelector(
+            `#main > div > div.span10.main > ul > li:has(a[href="${url}"])`,
+          );
+        }
+
+        const n = student.querySelector("span");
+        if (n != null) {
+          n.querySelector("class-rm")?.remove();
+          n.innerHTML += `<span class="class-rm"> (${avg})</span>`;
         }
         return student;
       },
@@ -183,9 +272,4 @@ if (url.match(/units/)) {
 
     lisorted.forEach((i) => list.append(i));
   })();
-} else if (url.match("/calendars") {
-//  document.querySelectorAll("#calendar > div.fc-view-container > div > table > tbody > tr > td > div > div > div.fc-content-skeleton > table > tbody > tr > td > div > a.fc-time-grid-event.fc-v-event.fc-event.fc-start.fc-end").forEach(i => {
-//     i.style.backgroundColor = "rgb(230, 176, 170)"
-//     i.style.borderColor = "rgb(174, 214, 241)"
-//   }); 
 }
